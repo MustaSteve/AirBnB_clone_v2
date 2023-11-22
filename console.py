@@ -73,7 +73,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] == '{' and pline[-1] =='}'\
+                    if pline[0] == '{' and pline[-1] == '}'\
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -113,39 +113,43 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def do_create(self, arg):
+    def do_create(self, args):
         """ allow for object creation with given parameters """
-        if not arg:
+        params = args.split()
+        len_param = len(params)
+        if len_param == 0:
             print("** class name missing **")
             return
-        args = arg.split()
-        class_name = args[0]
-        if class_name not in self.classes:
+        elif params[0] not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        args = args[1:]
-        params = {}
-        for p_arg in args:
-            split_p_arg= p_arg.split("=")
-            if len(split_p_arg) == 2:
-                key, value = split_p_arg
-                if value.startswith('"') and value.endswith('"'):
-                    params[key] = value[1:-1]
-                    params[key] = value.replace('_', ' ')
-                if "." in value:
+        new_instance = HBNBCommand.classes[params[0]]()
+        if len_param > 1:
+            for i in range(1, len_param):
+                if params[1].count("=") != 1:
+                    continue
+                param = params[i].split('=')
+                key = param[0]
+                value = param[1]
+                if not key:
+                    continue
+                if (value[0] == '"' and value[-1] == '"' and len(value) != 1):
+                    value = value[1: -1]
+                    value = value.replace('_', ' ')
+                elif value.count(".") == 1:
                     try:
-                        params[key] = float(value)
+                        value = float(value)
                     except ValueError:
                         pass
                 else:
                     try:
-                        params[key] = int(value)
+                        value = int(value)
                     except ValueError:
                         pass
-        new_instance = eval(class_name)(**params)
-        storage.save()
+                setattr(new_instance, key, value)
+        new_instance.save()
         print(new_instance.id)
-        storage.save()
+        new_instance.save()
 
     def help_create(self):
         """ Help information for the create method """
@@ -208,7 +212,7 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         try:
-            del(storage.all()[key])
+            del (storage.all()[key])
             storage.save()
         except KeyError:
             print("** no instance found **")
@@ -340,6 +344,7 @@ class HBNBCommand(cmd.Cmd):
         """ Help information for the update class """
         print("Updates an object with new information")
         print("Usage: update <className> <id> <attName> <attVal>\n")
+
 
 if __name__ == "__main__":
     HBNBCommand().cmdloop()
