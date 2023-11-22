@@ -38,10 +38,10 @@ class DBStorage:
         if cls and cls in classes:
             for obj in self.__session.query(eval(cls)):
                 objects.update({obj.id: obj})
-            elif cls is None:
-                for class_name in classes:
-                    for obj in self.__session.quer(eval(class_name)):
-                        objects.update({obj.id: obj})
+        elif cls is None:
+            for class_name in classes:
+                for obj in self.__session.query(eval(class_name)):
+                    objects.update({obj.id: obj})
         return objects
 
     def new(self, obj):
